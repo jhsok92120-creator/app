@@ -1,7 +1,7 @@
 {
-  "name": "생각쑥쑥 마음쑥쑥",
-  "short_name": "생각쑥쑥",
-  "description": "초등학생을 위한 사고력·마음 읽기 퀴즈",
+  "name": "IQ·EQ 퀴즈",
+  "short_name": "IQ·EQ 퀴즈",
+  "description": "초등 3학년 이상을 위한 IQ·EQ 퀴즈",
   "lang": "ko",
   "start_url": "./",
   "scope": "./",
