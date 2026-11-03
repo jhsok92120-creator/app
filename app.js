@@ -4,15 +4,12 @@
   const ROUND_SIZE = 10; // 한 회에 푸는 문제 수 (영역당 2문제씩)
   const PRACTICE_SIZE = 8; // 영역별 연습 문제 수
   const STORAGE_KEY = "iqeq-best-v3";
-  const NUMS = ["①", "②", "③", "④", "⑤"];
   const app = document.getElementById("app");
 
-  // 손으로 그린 듯한 채점 표시(빨간 펜)
-  const MARK_O = (draw) =>
-    `<svg class="mark${draw ? " draw" : ""}" viewBox="0 0 60 60" aria-hidden="true"><path d="M33 7C47 7 55 18 54 31C53 45 42 54 29 54C15 54 6 44 6 30C6 18 15 9 27 8C30 8 34 9 37 10"/></svg>`;
-  const MARK_X = (draw) =>
-    `<svg class="mark${draw ? " draw" : ""}" viewBox="0 0 60 60" aria-hidden="true"><path d="M12 50C22 38 36 22 50 9"/></svg>`;
-  const SPEAKER = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+  const ICO_BACK = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const ICO_SPEAK = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+  const ICO_OK = `<svg class="ico ico-ok" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><path d="M7 12.5l3.2 3L17 9" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const ICO_NO = `<svg class="ico ico-no" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><path d="M8 8l8 8M16 8l-8 8" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>`;
 
   let state = null;
 
@@ -74,29 +71,26 @@
     const best = loadBest();
     const panel = (t) => {
       const b = best[t.id];
-      const count = t.categories.reduce((n, c) => n + c.questions.length, 0);
       return `
-        <button class="panel" data-start="${t.id}">
-          <span class="panel-label">${t.label}</span>
-          <span class="panel-body">
-            <span class="panel-title">${esc(t.title)}</span>
-            <span class="panel-desc">${esc(t.desc)}</span>
-            <span class="panel-tags">${t.categories.map((c) => `<span>${esc(c.title)}</span>`).join("")}</span>
-            <span class="panel-foot">
-              <span>문제 ${count}개 중 ${ROUND_SIZE}문제</span>
-              <span>${b ? `최고 기록 <b>${b.correct}/${b.total}</b>` : "아직 기록 없음"}</span>
-            </span>
+        <button class="panel ${t.id}" data-start="${t.id}">
+          <span class="panel-head">
+            <span class="panel-label">${t.label}</span>
+            <span class="panel-best">${b ? `최고 ${b.correct}/${b.total}` : "첫 도전"}</span>
           </span>
-          <span class="panel-go">시작 ›</span>
+          <span class="panel-title">${esc(t.title)}</span>
+          <span class="panel-desc">${esc(t.desc)}</span>
+          <span class="panel-tags">${t.categories.map((c) => `<span>${esc(c.title)}</span>`).join("")}</span>
+          <span class="panel-go">${ROUND_SIZE}문제 시작하기</span>
         </button>`;
     };
     app.innerHTML = `
       <header class="masthead">
-        <h1>IQ·EQ 퀴즈</h1>
-        <p>생각하는 힘과 마음 읽는 힘을 10문제로 확인해요. 초등 3학년 이상</p>
+        <p class="eyebrow">초등 3학년 이상</p>
+        <h1>오늘은 어떤 힘을<br>키워 볼까요?</h1>
+        <p class="sub">IQ는 생각하는 힘, EQ는 마음을 읽는 힘이에요.</p>
       </header>
       ${TRACKS.map(panel).join("")}
-      <button class="btn-ghost" data-action="practice">영역을 골라서 연습하기 ›</button>
+      <button class="link-btn" data-action="practice">영역을 골라서 연습하기 ›</button>
       <p class="footnote">연습용 퀴즈예요. 지능이나 성격을 재는 검사가 아니에요.</p>`;
     window.scrollTo({ top: 0 });
   }
@@ -105,19 +99,18 @@
   function renderPractice() {
     const best = loadBest();
     app.innerHTML = `
-      <div class="bar"><button class="text-btn" data-action="home">‹ 처음으로</button></div>
+      <div class="bar"><button class="icon-btn" data-action="home" aria-label="처음으로">${ICO_BACK}</button></div>
       <h1 class="page-title">영역별 연습</h1>
       ${TRACKS.map(
         (t) => `
-        <section class="part">
-          <h2><span class="tag-${t.id}">${t.label}</span> ${esc(t.title)}</h2>
+        <section class="part ${t.id}">
+          <h2><b>${t.label}</b>${esc(t.title)}</h2>
           ${t.categories
-            .map((c, i) => {
+            .map((c) => {
               const b = best[c.id];
               return `<button class="unit" data-start="${c.id}">
-                <span class="unit-no">${String(i + 1).padStart(2, "0")}</span>
                 <span><span class="unit-title">${esc(c.title)}</span><span class="unit-desc">${c.questions.length}문제 중 ${PRACTICE_SIZE}문제</span></span>
-                ${b ? `<span class="unit-best">최고<br><b>${b.correct}/${b.total}</b></span>` : `<span class="unit-go" aria-hidden="true">›</span>`}
+                ${b ? `<span class="unit-best">${b.correct}/${b.total}</span>` : `<span class="unit-go" aria-hidden="true">›</span>`}
               </button>`;
             })
             .join("")}
@@ -155,43 +148,26 @@
     window.scrollTo({ top: 0 });
   }
 
-  function trackHTML() {
-    const { list, index, results } = state;
-    return list
-      .map((_, i) => {
-        const r = results[i];
-        if (r) return `<li class="${r.ok ? "o" : "x"}">${r.ok ? MARK_O(false) : MARK_X(false)}</li>`;
-        return `<li class="${i === index ? "now" : ""}"></li>`;
-      })
-      .join("");
-  }
-
   function renderQuestion() {
-    const { list, index, title } = state;
+    const { list, index } = state;
     const q = list[index];
+    const pct = (index / list.length) * 100;
     app.innerHTML = `
       <div class="bar">
-        <button class="text-btn" data-action="home">‹ 그만하기</button>
-        <span class="bar-title">${esc(title)}</span>
-        ${canSpeak ? `<button class="speak-btn" data-action="speak">${SPEAKER}읽기</button>` : ""}
+        <button class="icon-btn" data-action="home" aria-label="그만하기">${ICO_BACK}</button>
+        <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="${list.length}" aria-valuenow="${index}"><span style="width:${pct}%"></span></div>
+        <span class="counter">${index + 1}/${list.length}</span>
+        ${canSpeak ? `<button class="icon-btn" data-action="speak" aria-label="문제 읽어주기">${ICO_SPEAK}</button>` : ""}
       </div>
-      <ol class="track" aria-label="${list.length}문제 중 ${index + 1}번째">${trackHTML()}</ol>
       <article class="sheet">
         <div class="q-meta">
-          <span>${esc(q.cat)} · ${index + 1} / ${list.length}</span>
+          <span class="chip">${esc(q.cat)}</span>
           <span class="lv" title="난이도 ${lvName[q.lv]}" aria-label="난이도 ${lvName[q.lv]}">${lvText(q.lv)}</span>
         </div>
-        <div class="q-head">
-          <span class="q-num">${index + 1}.</span>
-          <p class="q-text">${esc(q.q)}</p>
-        </div>
+        <p class="q-text">${esc(q.q)}</p>
         <ul class="opts">
           ${q.shown
-            .map(
-              (o, i) => `<li><button class="opt" data-opt="${i}">
-                <span class="opt-no">${NUMS[i]}</span><span class="opt-text">${esc(o)}</span>
-              </button></li>`
-            )
+            .map((o, i) => `<li><button class="opt" data-opt="${i}"><span>${esc(o)}</span></button></li>`)
             .join("")}
         </ul>
         <div id="after"></div>
@@ -208,23 +184,25 @@
     const correctIdx = q.shown.indexOf(q.correctText);
     app.querySelectorAll(".opt").forEach((btn, idx) => {
       btn.disabled = true;
-      const num = btn.querySelector(".opt-no");
-      if (idx === correctIdx) num.insertAdjacentHTML("beforeend", MARK_O(true));
-      else if (idx === i) {
-        num.insertAdjacentHTML("beforeend", MARK_X(true));
-        btn.classList.add("picked-wrong");
+      if (idx === correctIdx) {
+        btn.classList.add("correct");
+        btn.insertAdjacentHTML("beforeend", ICO_OK);
+      } else if (idx === i) {
+        btn.classList.add("wrong");
+        btn.insertAdjacentHTML("beforeend", ICO_NO);
       } else btn.classList.add("dim");
     });
-    app.querySelector(".track").innerHTML = trackHTML();
+    const bar = app.querySelector(".progress > span");
+    if (bar) bar.style.width = `${((state.index + 1) / state.list.length) * 100}%`;
 
     const last = state.index === state.list.length - 1;
     const after = document.getElementById("after");
     after.innerHTML = `
-      <div class="note">
-        <div class="note-head${ok ? " ok" : ""}">${ok ? "정답" : `정답은 ${NUMS[correctIdx]} ${esc(q.correctText)}`}</div>
+      <div class="note${ok ? " good" : ""}">
+        <p class="note-head">${ok ? "정답이에요!" : `정답은 "${esc(q.correctText)}"`}</p>
         <p>${esc(q.explain)}</p>
       </div>
-      <button class="btn" data-action="next">${last ? "채점 결과 보기" : "다음 문제"}</button>`;
+      <button class="btn" data-action="next">${last ? "결과 보기" : "다음"}</button>`;
     after.querySelector("button").focus({ preventScroll: true });
     after.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
@@ -247,16 +225,15 @@
     saveBest(key, correct, total);
 
     const r = correct / total;
-    const [stamp, cheer, soft] =
+    const [head, cheer] =
       r >= 0.9
-        ? ["참<br>잘했어요", "거의 다 맞혔어요. 더 어려운 문제가 나오도록 다른 퀴즈에도 도전해 봐요.", false]
+        ? ["완벽에 가까워요!", "거의 다 맞혔어요. 다른 퀴즈에도 도전해 봐요."]
         : r >= 0.6
-        ? ["잘<br>했어요", "많이 맞혔어요. 틀린 문제의 풀이를 한 번 더 읽어 봐요.", false]
+        ? ["잘했어요!", "많이 맞혔어요. 틀린 문제의 풀이를 한 번 더 읽어 봐요."]
         : r > 0
-        ? ["힘내요", "아래 채점표에서 틀린 문제를 다시 보고, 한 번 더 풀어 봐요.", true]
-        : ["다시<br>도전", "처음엔 누구나 어려워요. 풀이를 읽고 다시 도전해요.", true];
+        ? ["조금만 더!", "아래에서 틀린 문제를 다시 보고, 한 번 더 풀어 봐요."]
+        : ["다시 도전!", "처음엔 누구나 어려워요. 풀이를 읽고 다시 도전해요."];
 
-    // 영역별 결과
     const byCat = {};
     for (const x of results) {
       byCat[x.q.cat] = byCat[x.q.cat] || { c: 0, t: 0 };
@@ -266,10 +243,13 @@
     const catRows = Object.entries(byCat);
 
     app.innerHTML = `
-      <div class="bar"><button class="text-btn" data-action="home">‹ 처음으로</button><span class="bar-title">${esc(title)}</span></div>
+      <div class="bar"><button class="icon-btn" data-action="home" aria-label="처음으로">${ICO_BACK}</button><span class="counter" style="flex:1;text-align:center">${esc(title)}</span><span style="width:40px"></span></div>
       <section class="result">
-        <div class="stamp${soft ? " soft" : ""}" aria-hidden="true"><span>${stamp}</span></div>
-        <p class="score">${total}문제 중 <b>${correct}</b>문제</p>
+        <div class="ring" aria-label="${total}문제 중 ${correct}문제">
+          <svg viewBox="0 0 120 120"><circle class="track" cx="60" cy="60" r="52" pathLength="100"/><circle class="fill" cx="60" cy="60" r="52" pathLength="100"/></svg>
+          <div class="num">${correct}<small>/ ${total}</small></div>
+        </div>
+        <h2>${head}</h2>
         <p class="cheer">${cheer}</p>
         <button class="btn" data-action="retry">한 번 더 풀기</button>
         <button class="btn-ghost" data-action="home">다른 퀴즈 고르기</button>
@@ -291,12 +271,12 @@
           : ""
       }
       <section class="review">
-        <h2>채점표</h2>
+        <h2>다시 보기</h2>
         <ol>
           ${results
             .map(
               (x, i) => `<li>
-                ${x.ok ? MARK_O(false) : MARK_X(false)}
+                ${x.ok ? ICO_OK : ICO_NO}
                 <div>${i + 1}. ${esc(x.q.q)}
                   <span class="ans">${
                     x.ok ? `내 답: ${esc(x.chosen)}` : `내 답: ${esc(x.chosen)} · 정답: <b>${esc(x.q.correctText)}</b>`
@@ -309,6 +289,12 @@
         </ol>
       </section>`;
     window.scrollTo({ top: 0 });
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        const fill = app.querySelector(".ring .fill");
+        if (fill) fill.style.strokeDashoffset = String(100 - r * 100);
+      })
+    );
   }
 
   // ---------- 이벤트 ----------
