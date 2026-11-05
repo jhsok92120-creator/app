@@ -50,6 +50,10 @@ h1, h2 { margin: 0; font-weight: 800; letter-spacing: -0.02em; }
 
 /* ---------- 홈 ---------- */
 .masthead { margin: 12px 0 20px; }
+.masthead-top { display: flex; align-items: center; justify-content: space-between; }
+.masthead-top .eyebrow { margin: 0; }
+.sound-btn { background: var(--card); color: var(--primary); }
+.sound-btn[aria-pressed="false"] { color: var(--muted); }
 .masthead .eyebrow { color: var(--primary); font-weight: 700; font-size: 14px; margin: 0 0 4px; }
 .masthead h1 { font-size: 30px; line-height: 1.25; }
 .masthead p.sub { margin: 8px 0 0; color: var(--muted); font-size: 15px; }

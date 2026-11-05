@@ -13,6 +13,47 @@
 
   let state = null;
 
+  // ---------- 효과음 (Web Audio, 음원 파일 없음) ----------
+  const SOUND_KEY = "iqeq-sound";
+  let soundOn = true;
+  try { soundOn = localStorage.getItem(SOUND_KEY) !== "off"; } catch { /* 기본값 켜짐 */ }
+  let actx = null;
+  function tone(freq, ms, type = "sine", gain = 0.18, delay = 0) {
+    const t0 = actx.currentTime + delay;
+    const o = actx.createOscillator();
+    const g = actx.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(freq, t0);
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(gain, t0 + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + ms / 1000);
+    o.connect(g).connect(actx.destination);
+    o.start(t0);
+    o.stop(t0 + ms / 1000 + 0.02);
+  }
+  function play(kind) {
+    if (!soundOn) return;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      if (!actx) actx = new AC();
+      if (actx.state === "suspended") actx.resume();
+      if (kind === "tap") tone(620, 70, "sine", 0.12);
+      else if (kind === "correct") { tone(660, 120, "sine", 0.16); tone(990, 220, "sine", 0.16, 0.1); }
+      else if (kind === "wrong") tone(180, 200, "triangle", 0.18);
+      else if (kind === "done") { tone(523, 120, "sine", 0.15); tone(659, 120, "sine", 0.15, 0.12); tone(784, 260, "sine", 0.15, 0.24); }
+    } catch { /* 소리를 못 내는 환경이면 조용히 넘어갑니다 */ }
+  }
+  function toggleSound() {
+    soundOn = !soundOn;
+    try { localStorage.setItem(SOUND_KEY, soundOn ? "on" : "off"); } catch { /* 무시 */ }
+    if (soundOn) play("tap");
+  }
+  const ICO_SOUND_ON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+  const ICO_SOUND_OFF = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z" fill="currentColor"/><path d="M16 9.5l5 5M21 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+  const soundBtn = () =>
+    `<button class="icon-btn sound-btn" data-action="sound" aria-label="효과음 ${soundOn ? "끄기" : "켜기"}" aria-pressed="${soundOn}">${soundOn ? ICO_SOUND_ON : ICO_SOUND_OFF}</button>`;
+
   // ---------- 유틸 ----------
   const esc = (s) =>
     String(s).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
@@ -115,7 +156,7 @@
     };
     app.innerHTML = `
       <header class="masthead">
-        <p class="eyebrow">초등 3학년 이상</p>
+        <div class="masthead-top"><p class="eyebrow">초등 3학년 이상</p>${soundBtn()}</div>
         <h1>오늘은 어떤 힘을<br>키워 볼까요?</h1>
         <p class="sub">IQ는 생각하는 힘, EQ는 마음을 읽는 힘이에요.</p>
       </header>
@@ -210,6 +251,7 @@
     const chosen = q.shown[i];
     const ok = chosen === q.correctText;
     state.results.push({ q, chosen, ok });
+    play(ok ? "correct" : "wrong");
 
     const correctIdx = q.shown.indexOf(q.correctText);
     app.querySelectorAll(".opt").forEach((btn, idx) => {
@@ -253,6 +295,7 @@
     const correct = results.filter((r) => r.ok).length;
     const total = results.length;
     saveBest(key, correct, total);
+    play("done");
 
     const r = correct / total;
     const [head, cheer] =
@@ -331,6 +374,12 @@
   app.addEventListener("click", (e) => {
     const el = e.target.closest("button");
     if (!el) return;
+    if (el.dataset.action === "sound") {
+      toggleSound();
+      el.outerHTML = soundBtn();
+      return;
+    }
+    if (el.dataset.opt == null) play("tap");
     if (el.dataset.start) return start(el.dataset.start);
     if (el.dataset.opt != null) return choose(Number(el.dataset.opt));
     switch (el.dataset.action) {
