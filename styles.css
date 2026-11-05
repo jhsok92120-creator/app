@@ -201,3 +201,75 @@ h1, h2 { margin: 0; font-weight: 800; letter-spacing: -0.02em; }
 @media (prefers-reduced-motion: reduce) {
   .progress > span, .ring .fill, .btn, .panel { transition: none; }
 }
+
+/* ---------- 처음 실행 소개 ---------- */
+body.splash-bg { background: var(--primary); }
+.splash {
+  min-height: calc(100vh - 60px); min-height: calc(100dvh - 60px);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  color: #fff; text-align: center; cursor: pointer;
+}
+.splash .logo { width: 140px; height: 140px; animation: pop-in 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.3) both; }
+.splash .logo-eye { transform-origin: center; animation: blink 2.4s 1s infinite; }
+.splash h1 { font-size: 32px; margin-top: 18px; animation: rise 0.5s 0.35s both; }
+.splash p { margin: 6px 0 0; font-size: 15px; opacity: 0.85; animation: rise 0.5s 0.5s both; }
+@keyframes pop-in { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes rise { from { transform: translateY(14px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
+
+.intro { display: flex; flex-direction: column; min-height: calc(100vh - 60px); min-height: calc(100dvh - 60px); }
+.intro-card {
+  background: var(--card); border-radius: 22px; height: 240px;
+  display: grid; place-items: center; overflow: hidden; margin-top: 8px;
+  animation: rise 0.4s both;
+}
+.intro-body { margin-top: 22px; flex: 1; animation: rise 0.45s 0.1s both; }
+.intro-tag { display: inline-block; font-size: 13px; font-weight: 800; color: var(--primary); background: var(--primary-soft); padding: 4px 10px; border-radius: 99px; }
+.intro-body h1 { font-size: 27px; line-height: 1.3; margin-top: 10px; }
+.intro-body p { margin: 10px 0 0; color: var(--muted); font-size: 15px; line-height: 1.6; }
+.dots { display: flex; justify-content: center; gap: 6px; margin-top: 12px; }
+.dots span { width: 6px; height: 6px; border-radius: 99px; background: #c9d3ea; transition: width 0.2s, background 0.2s; }
+.dots span.on { width: 20px; background: var(--primary); }
+.footnote-link { display: inline-block; margin-top: 6px; color: var(--primary); font-weight: 600; font-size: 13px; text-decoration: underline; text-underline-offset: 3px; }
+
+/* 그림 1: 수 규칙 타일 */
+.art-iq { display: flex; gap: 10px; }
+.tile {
+  width: 58px; height: 58px; border-radius: 14px; display: grid; place-items: center;
+  background: var(--primary-soft); color: var(--primary); font-size: 24px; font-weight: 800;
+  animation: pop-in 0.45s calc(var(--i) * 0.18s) cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+}
+.tile.flip { position: relative; background: var(--primary); color: #fff; }
+.tile.flip .front, .tile.flip .back { position: absolute; inset: 0; display: grid; place-items: center; backface-visibility: hidden; }
+.tile.flip .front { animation: flip-out 0.5s 1.4s forwards; }
+.tile.flip .back { transform: rotateY(180deg); animation: flip-in 0.5s 1.4s forwards; }
+@keyframes flip-out { to { transform: rotateY(180deg); } }
+@keyframes flip-in { to { transform: rotateY(360deg); } }
+
+/* 그림 2: 대화 말풍선 */
+.art-eq { position: relative; width: 100%; max-width: 300px; height: 160px; }
+.bubble {
+  position: absolute; padding: 12px 16px; border-radius: 18px; font-size: 15px; font-weight: 600;
+  animation: rise 0.5s calc(0.2s + var(--i) * 0.7s) both;
+}
+.bubble.left { left: 0; top: 18px; background: #f4f6fb; border-bottom-left-radius: 6px; }
+.bubble.right { right: 0; top: 76px; background: var(--coral); color: #fff; border-bottom-right-radius: 6px; }
+.art-eq .heart { position: absolute; right: 8px; top: 40px; width: 28px; height: 28px; animation: pop-in 0.5s 1.7s cubic-bezier(0.2, 0.9, 0.3, 1.4) both; }
+
+/* 그림 3: 진행 막대와 체크 */
+.art-daily { width: 100%; max-width: 280px; text-align: center; }
+.pbar { height: 12px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.pbar span { display: block; height: 100%; width: 0; background: var(--blue); border-radius: 99px; animation: fill 1.6s 0.3s ease-out forwards; }
+@keyframes fill { to { width: 100%; } }
+.checks { display: flex; justify-content: space-between; margin-top: 18px; padding: 0 4px; }
+.chk { width: 36px; height: 36px; animation: pop-in 0.4s calc(0.4s + var(--i) * 0.3s) cubic-bezier(0.2, 0.9, 0.3, 1.3) both; }
+.chk svg { width: 100%; height: 100%; display: block; }
+.count { margin-top: 18px; font-size: 15px; color: var(--muted); font-weight: 600; }
+.count .n { font-size: 30px; font-weight: 800; color: var(--text); letter-spacing: -0.03em; }
+
+@media (prefers-reduced-motion: reduce) {
+  .splash .logo, .splash .logo-eye, .splash h1, .splash p, .intro-card, .intro-body, .tile, .bubble, .art-eq .heart, .chk { animation: none; }
+  .tile.flip .front { display: none; }
+  .tile.flip .back { transform: none; animation: none; }
+  .pbar span { animation: none; width: 100%; }
+}

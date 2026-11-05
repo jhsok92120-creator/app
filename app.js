@@ -64,6 +64,105 @@
     speechSynthesis.speak(u);
   }
 
+
+  // ---------- 처음 실행 소개 ----------
+  const INTRO_KEY = "iqeq-intro-seen";
+  const introSeen = () => {
+    try { return localStorage.getItem(INTRO_KEY) === "1"; } catch { return true; }
+  };
+  const markIntroSeen = () => {
+    try { localStorage.setItem(INTRO_KEY, "1"); } catch { /* 무시 */ }
+  };
+
+  const LOGO = `<svg class="logo" viewBox="0 0 512 512" aria-hidden="true">
+    <rect x="88" y="128" width="336" height="236" rx="48" fill="#fff"/>
+    <path d="M212 364h88l-44 52z" fill="#fff"/>
+    <circle class="logo-eye l" cx="186" cy="246" r="30" fill="#6d36d5"/>
+    <circle class="logo-eye r" cx="326" cy="246" r="30" fill="#ff6b5a"/>
+    <path d="M166 302c16 10 32 16 60 16s44-6 60-16" fill="none" stroke="#1f2033" stroke-width="14" stroke-linecap="round"/>
+  </svg>`;
+
+  const INTRO = [
+    {
+      tag: "IQ",
+      title: "규칙을 찾아내는<br>생각하는 힘",
+      desc: "수 규칙, 논리 퍼즐, 도형, 암호까지.<br>머리를 쓰는 재미를 느껴 봐요.",
+      art: `<div class="art art-iq">
+        <span class="tile" style="--i:0">2</span>
+        <span class="tile" style="--i:1">4</span>
+        <span class="tile" style="--i:2">8</span>
+        <span class="tile flip" style="--i:3"><span class="front">?</span><span class="back">16</span></span>
+      </div>`,
+    },
+    {
+      tag: "EQ",
+      title: "마음을 알아주는<br>마음 읽는 힘",
+      desc: "감정을 알아차리고, 친구 입장에서 생각하고,<br>다툼을 푸는 방법을 연습해요.",
+      art: `<div class="art art-eq">
+        <span class="bubble left" style="--i:0">오늘 좀 힘들어…</span>
+        <span class="bubble right" style="--i:1">무슨 일 있었어?</span>
+        <svg class="heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-4.6-9.3-9A5.2 5.2 0 0 1 12 6.3 5.2 5.2 0 0 1 21.3 12C19 16.4 12 21 12 21z" fill="#ff6b5a"/></svg>
+      </div>`,
+    },
+    {
+      tag: "매일 10문제",
+      title: "하루 10문제로<br>두 힘을 같이 키워요",
+      desc: "틀려도 괜찮아요. 바로 나오는 풀이를 읽고<br>다시 도전하면 돼요.",
+      art: `<div class="art art-daily">
+        <div class="pbar"><span></span></div>
+        <div class="checks">
+          ${[0, 1, 2, 3, 4].map((i) => `<span class="chk" style="--i:${i}">${ICO_OK}</span>`).join("")}
+        </div>
+        <div class="count"><span class="n">10</span>/10</div>
+      </div>`,
+    },
+  ];
+
+  function renderSplash() {
+    app.innerHTML = `
+      <div class="splash" data-action="intro-0" role="button" tabindex="0" aria-label="앱 소개 시작">
+        ${LOGO}
+        <h1>IQ·EQ 퀴즈</h1>
+        <p>생각하는 힘, 마음 읽는 힘</p>
+      </div>`;
+    document.body.classList.add("splash-bg");
+    const t = setTimeout(() => {
+      if (app.querySelector(".splash")) renderIntro(0);
+    }, 1800);
+    app.querySelector(".splash").addEventListener("click", () => { clearTimeout(t); renderIntro(0); }, { once: true });
+  }
+
+  function renderIntro(step) {
+    document.body.classList.remove("splash-bg");
+    const s = INTRO[step];
+    const last = step === INTRO.length - 1;
+    app.innerHTML = `
+      <div class="intro">
+        <div class="bar">
+          <span></span>
+          <button class="text-btn" data-action="intro-skip">건너뛰기</button>
+        </div>
+        <div class="intro-card">
+          ${s.art}
+        </div>
+        <div class="intro-body">
+          <span class="intro-tag">${s.tag}</span>
+          <h1>${s.title}</h1>
+          <p>${s.desc}</p>
+        </div>
+        <div class="dots" aria-hidden="true">
+          ${INTRO.map((_, i) => `<span class="${i === step ? "on" : ""}"></span>`).join("")}
+        </div>
+        <button class="btn" data-action="${last ? "intro-done" : `intro-${step + 1}`}">${last ? "시작하기" : "다음"}</button>
+      </div>`;
+    window.scrollTo({ top: 0 });
+  }
+
+  function finishIntro() {
+    markIntroSeen();
+    renderHome();
+  }
+
   // ---------- 홈 ----------
   function renderHome() {
     state = null;
@@ -91,7 +190,7 @@
       </header>
       ${TRACKS.map(panel).join("")}
       <button class="link-btn" data-action="practice">영역을 골라서 연습하기 ›</button>
-      <p class="footnote">연습용 퀴즈예요. 지능이나 성격을 재는 검사가 아니에요.</p>`;
+      <p class="footnote">연습용 퀴즈예요. 지능이나 성격을 재는 검사가 아니에요.<br><button class="footnote-link" data-action="intro-replay">앱 소개 다시 보기</button></p>`;
     window.scrollTo({ top: 0 });
   }
 
@@ -303,7 +402,14 @@
     if (!el) return;
     if (el.dataset.start) return start(el.dataset.start);
     if (el.dataset.opt != null) return choose(Number(el.dataset.opt));
-    switch (el.dataset.action) {
+    const a = el.dataset.action || "";
+    if (a.startsWith("intro-")) {
+      const what = a.slice(6);
+      if (what === "skip" || what === "done") return finishIntro();
+      if (what === "replay") return renderSplash();
+      return renderIntro(Number(what));
+    }
+    switch (a) {
       case "home":
         return renderHome();
       case "practice":
@@ -319,7 +425,8 @@
     }
   });
 
-  renderHome();
+  if (introSeen()) renderHome();
+  else renderSplash();
 
   if ("serviceWorker" in navigator && location.protocol !== "file:") {
     window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
