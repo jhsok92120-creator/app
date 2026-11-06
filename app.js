@@ -150,7 +150,6 @@
           </span>
           <span class="panel-title">${esc(t.title)}</span>
           <span class="panel-desc">${esc(t.desc)}</span>
-          <span class="panel-tags">${t.categories.map((c) => `<span>${esc(c.title)}</span>`).join("")}</span>
           <span class="panel-go">${ROUND_SIZE}문제 시작하기</span>
         </button>`;
     };

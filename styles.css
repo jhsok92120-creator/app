@@ -76,8 +76,6 @@ h1, h2 { margin: 0; font-weight: 800; letter-spacing: -0.02em; }
 .panel-best { font-size: 13px; font-weight: 600; background: rgba(255, 255, 255, 0.2); padding: 4px 10px; border-radius: 99px; }
 .panel-title { display: block; font-size: 26px; font-weight: 800; line-height: 1.2; margin-top: 10px; letter-spacing: -0.02em; }
 .panel-desc { display: block; font-size: 14px; opacity: 0.9; margin-top: 6px; }
-.panel-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
-.panel-tags span { font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 99px; background: rgba(255, 255, 255, 0.18); }
 .panel-go {
   display: flex; align-items: center; justify-content: center; gap: 4px;
   margin-top: 18px; padding: 14px;
