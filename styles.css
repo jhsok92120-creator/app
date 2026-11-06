@@ -50,11 +50,9 @@ h1, h2 { margin: 0; font-weight: 800; letter-spacing: -0.02em; }
 
 /* ---------- 홈 ---------- */
 .masthead { margin: 12px 0 20px; }
-.masthead-top { display: flex; align-items: center; justify-content: space-between; }
-.masthead-top .eyebrow { margin: 0; }
+.masthead-top { display: flex; justify-content: flex-end; margin-bottom: 8px; }
 .sound-btn { background: var(--card); color: var(--primary); }
 .sound-btn[aria-pressed="false"] { color: var(--muted); }
-.masthead .eyebrow { color: var(--primary); font-weight: 700; font-size: 14px; margin: 0 0 4px; }
 .masthead h1 { font-size: 30px; line-height: 1.25; }
 .masthead p.sub { margin: 8px 0 0; color: var(--muted); font-size: 15px; }
 
@@ -220,4 +218,21 @@ body.splash-bg { background: var(--primary); }
 
 @media (prefers-reduced-motion: reduce) {
   .splash .logo, .splash .logo-eye, .splash h1, .splash p { animation: none; }
+}
+
+/* ---------- 화면 전환 ---------- */
+@keyframes page-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+#app > * { animation: page-in 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+#app > :nth-child(2) { animation-delay: 0.05s; }
+#app > :nth-child(3) { animation-delay: 0.1s; }
+#app > :nth-child(4) { animation-delay: 0.15s; }
+#app > :nth-child(n + 5) { animation-delay: 0.2s; }
+.note, #after .btn { animation: page-in 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+#after .btn { animation-delay: 0.06s; }
+.opts li { animation: page-in 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.opts li:nth-child(2) { animation-delay: 0.05s; }
+.opts li:nth-child(3) { animation-delay: 0.1s; }
+.opts li:nth-child(4) { animation-delay: 0.15s; }
+@media (prefers-reduced-motion: reduce) {
+  #app > *, .note, #after .btn, .opts li { animation: none; }
 }

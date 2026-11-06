@@ -152,7 +152,7 @@
     };
     app.innerHTML = `
       <header class="masthead">
-        <div class="masthead-top"><p class="eyebrow">초등 3학년 이상</p>${soundBtn()}</div>
+        <div class="masthead-top">${soundBtn()}</div>
         <h1>오늘은 어떤 힘을<br>키워 볼까요?</h1>
         <p class="sub">IQ는 생각하는 힘, EQ는 마음을 읽는 힘이에요.</p>
       </header>
