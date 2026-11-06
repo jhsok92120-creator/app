@@ -1,12 +1,13 @@
 // 앱 파일을 캐시해 오프라인에서도 동작하게 합니다.
 // 파일을 수정하면 CACHE 버전을 올려야 사용자에게 새 버전이 반영됩니다.
-const CACHE = "iqeq-v11";
+const CACHE = "iqeq-v12";
 const FONT_CACHE = "iqeq-fonts-v2";
 const ASSETS = [
   "./",
   "index.html",
   "styles.css",
   "app.js",
+  "figures.js",
   "questions.js",
   "manifest.webmanifest",
   "icons/icon.svg",

@@ -205,11 +205,17 @@
       title = `${found.track.label} · ${found.cat.title}`;
       key = found.cat.id;
     }
-    list = list.map((q) => ({
-      ...q,
-      correctText: q.options[q.answer],
-      shown: q.options.length > 2 ? shuffle(q.options) : q.options.slice(),
-    }));
+    list = list.map((q) => {
+      // 보기와 보기 그림을 같은 순서로 섞습니다
+      const idx = q.options.map((_, i) => i);
+      const order = q.options.length > 2 ? shuffle(idx) : idx;
+      return {
+        ...q,
+        correctText: q.options[q.answer],
+        shown: order.map((i) => q.options[i]),
+        shownFigures: q.optionFigures ? order.map((i) => q.optionFigures[i]) : null,
+      };
+    });
     state = { id, key, title, list, index: 0, results: [] };
     renderQuestion();
     window.scrollTo({ top: 0 });
@@ -232,9 +238,10 @@
           <span class="lv" title="난이도 ${lvName[q.lv]}" aria-label="난이도 ${lvName[q.lv]}">${lvText(q.lv)}</span>
         </div>
         <p class="q-text">${esc(q.q)}</p>
-        <ul class="opts">
+        ${q.figure ? `<div class="figure">${q.figure}</div>` : ""}
+        <ul class="opts${q.shownFigures ? " opts-fig" : ""}">
           ${q.shown
-            .map((o, i) => `<li><button class="opt" data-opt="${i}"><span>${esc(o)}</span></button></li>`)
+            .map((o, i) => `<li><button class="opt${q.shownFigures ? " opt-fig" : ""}" data-opt="${i}" aria-label="${esc(o)}">${q.shownFigures ? `<span class="opt-art">${q.shownFigures[i]}</span>` : ""}<span>${esc(o)}</span></button></li>`)
             .join("")}
         </ul>
         <div id="after"></div>
