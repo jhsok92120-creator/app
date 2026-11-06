@@ -139,14 +139,11 @@
   function renderHome() {
     state = null;
     if (canSpeak) speechSynthesis.cancel();
-    const best = loadBest();
     const panel = (t) => {
-      const b = best[t.id];
       return `
         <button class="panel ${t.id}" data-start="${t.id}">
           <span class="panel-head">
             <span class="panel-label">${t.label}</span>
-            <span class="panel-best">${b ? `최고 ${b.correct}/${b.total}` : "첫 도전"}</span>
           </span>
           <span class="panel-title">${esc(t.title)}</span>
           <span class="panel-desc">${esc(t.desc)}</span>
