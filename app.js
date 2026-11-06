@@ -221,13 +221,47 @@
     window.scrollTo({ top: 0 });
   }
 
+  // 답을 고른 뒤의 표시(정답·오답 강조, 풀이, 다음 버튼). 처음 답할 때와 이전 문제로 돌아왔을 때 모두 사용
+  function showAnswered(animate) {
+    const { list, index, results } = state;
+    const q = list[index];
+    const r = results[index];
+    const correctIdx = q.shown.indexOf(q.correctText);
+    const pickedIdx = q.shown.indexOf(r.chosen);
+    app.querySelectorAll(".opt").forEach((btn, idx) => {
+      btn.disabled = true;
+      if (idx === correctIdx) {
+        btn.classList.add("correct");
+        btn.insertAdjacentHTML("beforeend", ICO_OK);
+      } else if (idx === pickedIdx) {
+        btn.classList.add("wrong");
+        btn.insertAdjacentHTML("beforeend", ICO_NO);
+      } else btn.classList.add("dim");
+    });
+    const bar = app.querySelector(".progress > span");
+    if (bar) bar.style.width = `${((index + 1) / list.length) * 100}%`;
+
+    const last = index === list.length - 1;
+    const after = document.getElementById("after");
+    after.innerHTML = `
+      <div class="note${r.ok ? " good" : ""}">
+        <p class="note-head">${r.ok ? "정답이에요!" : `정답은 "${esc(q.correctText)}"`}</p>
+        <p>${esc(q.explain)}</p>
+      </div>
+      <button class="btn" data-action="next">${last ? "결과 보기" : "다음"}</button>`;
+    if (animate) {
+      after.querySelector("button").focus({ preventScroll: true });
+      after.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }
+
   function renderQuestion() {
-    const { list, index } = state;
+    const { list, index, results } = state;
     const q = list[index];
     const pct = (index / list.length) * 100;
     app.innerHTML = `
       <div class="bar">
-        <button class="icon-btn" data-action="home" aria-label="그만하기">${ICO_BACK}</button>
+        <button class="icon-btn" data-action="back" aria-label="${index > 0 ? "이전 문제" : "그만하기"}">${ICO_BACK}</button>
         <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="${list.length}" aria-valuenow="${index}"><span style="width:${pct}%"></span></div>
         <span class="counter">${index + 1}/${list.length}</span>
         ${canSpeak ? `<button class="icon-btn" data-action="speak" aria-label="문제 읽어주기">${ICO_SPEAK}</button>` : ""}
@@ -246,40 +280,18 @@
         </ul>
         <div id="after"></div>
       </article>`;
+    // 이미 푼 문제로 돌아온 경우: 고른 답과 풀이를 그대로 보여 줍니다
+    if (results[index]) showAnswered(false);
   }
 
   function choose(i) {
     const q = state.list[state.index];
-    if (state.results.length > state.index) return; // 이미 답함
+    if (state.results.length !== state.index) return; // 이미 답했거나 아직 차례가 아님
     const chosen = q.shown[i];
     const ok = chosen === q.correctText;
     state.results.push({ q, chosen, ok });
     play(ok ? "correct" : "wrong");
-
-    const correctIdx = q.shown.indexOf(q.correctText);
-    app.querySelectorAll(".opt").forEach((btn, idx) => {
-      btn.disabled = true;
-      if (idx === correctIdx) {
-        btn.classList.add("correct");
-        btn.insertAdjacentHTML("beforeend", ICO_OK);
-      } else if (idx === i) {
-        btn.classList.add("wrong");
-        btn.insertAdjacentHTML("beforeend", ICO_NO);
-      } else btn.classList.add("dim");
-    });
-    const bar = app.querySelector(".progress > span");
-    if (bar) bar.style.width = `${((state.index + 1) / state.list.length) * 100}%`;
-
-    const last = state.index === state.list.length - 1;
-    const after = document.getElementById("after");
-    after.innerHTML = `
-      <div class="note${ok ? " good" : ""}">
-        <p class="note-head">${ok ? "정답이에요!" : `정답은 "${esc(q.correctText)}"`}</p>
-        <p>${esc(q.explain)}</p>
-      </div>
-      <button class="btn" data-action="next">${last ? "결과 보기" : "다음"}</button>`;
-    after.querySelector("button").focus({ preventScroll: true });
-    after.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    showAnswered(true);
   }
 
   function next() {
@@ -290,6 +302,15 @@
       renderQuestion();
       window.scrollTo({ top: 0 });
     }
+  }
+
+  // 상단 뒤로 가기: 이전 문제로, 첫 문제면 홈으로
+  function back() {
+    if (canSpeak) speechSynthesis.cancel();
+    if (!state || state.index === 0) return renderHome();
+    state.index--;
+    renderQuestion();
+    window.scrollTo({ top: 0 });
   }
 
   // ---------- 결과 ----------
@@ -388,6 +409,8 @@
     switch (el.dataset.action) {
       case "home":
         return renderHome();
+      case "back":
+        return back();
       case "practice":
         return renderPractice();
       case "next":
