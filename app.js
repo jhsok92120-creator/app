@@ -96,13 +96,16 @@
   }
 
   const canSpeak = "speechSynthesis" in window;
-  function speak(text) {
+  function speak(text, lang = "ko-KR", rate = 0.95) {
     if (!canSpeak) return;
     speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = "ko-KR";
-    u.rate = 0.95;
-    speechSynthesis.speak(u);
+    const parts = Array.isArray(text) ? text : [[text, lang]];
+    for (const [t, l] of parts) {
+      const u = new SpeechSynthesisUtterance(t);
+      u.lang = l || lang;
+      u.rate = l === "en-US" ? 0.85 : rate;
+      speechSynthesis.speak(u);
+    }
   }
 
 
@@ -154,7 +157,7 @@
       <header class="masthead">
         <div class="masthead-top">${soundBtn()}</div>
         <h1>오늘은 어떤 힘을<br>키워 볼까요?</h1>
-        <p class="sub">IQ는 생각하는 힘, EQ는 마음을 읽는 힘이에요.</p>
+        <p class="sub">IQ는 생각하는 힘, EQ는 마음을 읽는 힘, ENG는 영어예요.</p>
       </header>
       ${TRACKS.map(panel).join("")}
       <button class="link-btn" data-action="practice">영역을 골라서 연습하기 ›</button>
@@ -273,6 +276,7 @@
         </div>
         <p class="q-text">${esc(q.q)}</p>
         ${q.figure ? `<div class="figure">${q.figure}</div>` : ""}
+        ${q.listen ? `<div class="figure"><button class="listen-btn" data-action="listen">${ICO_SPEAK}<span>다시 듣기</span></button>${canSpeak ? "" : `<p class="listen-fallback">이 기기는 소리를 낼 수 없어요: <b>${esc(q.listen)}</b></p>`}</div>` : ""}
         <ul class="opts${q.shownFigures ? " opts-fig" : ""}">
           ${q.shown
             .map((o, i) => `<li><button class="opt${q.shownFigures ? " opt-fig" : ""}" data-opt="${i}" aria-label="${esc(o)}">${q.shownFigures ? `<span class="opt-art">${q.shownFigures[i]}</span>` : ""}<span>${esc(o)}</span></button></li>`)
@@ -282,6 +286,7 @@
       </article>`;
     // 이미 푼 문제로 돌아온 경우: 고른 답과 풀이를 그대로 보여 줍니다
     if (results[index]) showAnswered(false);
+    else if (q.listen) setTimeout(() => speak(q.listen, "en-US"), 350);
   }
 
   function choose(i) {
@@ -417,8 +422,18 @@
         return next();
       case "retry":
         return start(state.id);
+      case "listen": {
+        const q = state.list[state.index];
+        return speak(q.listen, "en-US");
+      }
       case "speak": {
         const q = state.list[state.index];
+        if (q.listen) return speak(q.listen, "en-US");
+        if (q.en) {
+          // 영어 문제: 질문은 한국어로, 보기는 영어로 읽어 줍니다
+          const isEn = (t) => /^[A-Za-z0-9 .,'!?—-]+$/.test(t);
+          return speak([[q.q, "ko-KR"], ...q.shown.map((o, i) => [isEn(o) ? o : `${i + 1}번, ${o}`, isEn(o) ? "en-US" : "ko-KR"])]);
+        }
         return speak(`${q.q}. ${q.shown.map((o, i) => `${i + 1}번, ${o}`).join(". ")}`);
       }
     }
